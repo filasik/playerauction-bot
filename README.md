@@ -10,7 +10,6 @@ An intelligent Minecraft plugin that automatically manages auctions using Player
 - 🎯 **Market Saturation Control**: Prevents flooding the market by limiting listings per item type
 - ⚙️ **Virtual Mode**: Can operate without physical items in inventory for testing and virtual economies
 - 🔄 **Automatic Management**: Runs continuously with configurable monitoring intervals
-- � **Comprehensive Logging**: Detailed debug information for market analysis and bot decisions
 - 🛡️ **Safe Operation**: Built-in safeguards to prevent excessive spending and invalid auctions
 
 ## 📋 Requirements
@@ -311,11 +310,45 @@ This provides verbose information about:
 
 ### Log Analysis
 
-**Important log messages:**
+**Important log messages to understand:**
+- `Starting auction monitoring cycle` - Bot begins market analysis
+- `Market Stats - Total: X, Bot: Y` - Shows total market auctions vs bot's auctions
+- `DEBUG: ITEM_NAME - Market: X auctions, Bot: Y auctions` - Item-specific market analysis
 - `AI decided to create auction` - Bot is creating an auction
-- `Skipping auction - already have enough listings` - Market saturation protection active
-- `Not enough budget` - Budget limit reached
-- `Invalid AI decision received` - OpenAI returned malformed response
+- `AI decided not to create any auctions` - Bot is strategically waiting
+- `Successfully created virtual fixed auction` - Auction created successfully
+- `Bot has X active listings for ITEM (max: Y)` - Market saturation tracking
+
+**Why bot might wait (strategically):**
+```
+[AuctionBot] OpenAI response: {
+"action": "wait", 
+"reasoning": "No suitable items available for auction creation at the moment. All available items are either fully listed or have existing market presence."
+}
+```
+
+**Common reasons for waiting:**
+- Market saturation reached (`max-listings-per-item`)
+- Current market prices don't meet profit margin requirements
+- AI detects unfavorable market conditions
+- Strategic timing to avoid oversaturating specific item categories
+
+**Configuration issues to check:**
+```yaml
+available-items:
+  - "CHICKEN"      # Remove duplicates
+  - "CHICKEN"      # This is a duplicate
+  - "OAK_LOG"      # Remove duplicates  
+  - "OAK_LOG"      # This is a duplicate
+```
+
+**Production example of intelligent waiting:**
+```
+[AuctionBot] DEBUG: GOLD_INGOT - Market: 2 auctions, Bot: 2 auctions
+[AuctionBot] DEBUG: COAL - Market: 2 auctions, Bot: 2 auctions  
+[AuctionBot] AI decided not to create any auctions: All available items are either fully listed or have existing market presence.
+```
+This shows the bot correctly respecting market saturation limits.
 
 ## 📊 Performance & Monitoring
 
