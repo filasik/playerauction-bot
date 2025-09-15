@@ -1,175 +1,371 @@
 # AuctionBot
 
-AuctionBot is an intelligent Minecraft plugin that automatically manages auctions in the PlayerAuctions plugin using OpenAI artificial intelligence.
+An intelligent Minecraft plugin that automatically manages auctions using PlayerAuctions API and OpenAI artificial intelligence for smart market analysis and decision making.
 
-## Features
+## 🚀 Features
 
-- 🤖 **AI-driven decision making**: Uses OpenAI GPT to analyze the market and decide on auction creation
-- 📊 **Market analysis**: Monitors active auctions and identifies opportunities
-- 💰 **Intelligent pricing**: Sets competitive prices with desired profit margins
-- ⏰ **Automatic monitoring**: Regularly checks the auction house and reacts to changes
-- 🛠️ **Configurable**: Fully customizable settings for different servers
+- 🤖 **AI-Powered Market Analysis**: Uses OpenAI GPT-4o-mini to analyze auction market trends and make intelligent decisions
+- 📊 **Smart Market Monitoring**: Continuously monitors active auctions and identifies profitable opportunities
+- 💰 **Intelligent Pricing**: Automatically sets competitive prices with configurable profit margins
+- 🎯 **Market Saturation Control**: Prevents flooding the market by limiting listings per item type
+- ⚙️ **Virtual Mode**: Can operate without physical items in inventory for testing and virtual economies
+- 🔄 **Automatic Management**: Runs continuously with configurable monitoring intervals
+- � **Comprehensive Logging**: Detailed debug information for market analysis and bot decisions
+- 🛡️ **Safe Operation**: Built-in safeguards to prevent excessive spending and invalid auctions
 
-## Requirements
+## 📋 Requirements
 
 - **Minecraft Server**: Spigot/Paper 1.21+
 - **Java**: 17 or higher
 - **PlayerAuctions Plugin**: Version 2.2.4+
-- **OpenAI API Key**: For AI functionality
+- **OpenAI API Key**: For AI functionality ([Get one here](https://platform.openai.com/api-keys))
 
-## Installation
+## 🔧 Installation
 
-### 1. Build from source
+### 1. Prerequisites
+
+First, install the PlayerAuctions plugin on your server and ensure it's working properly.
+
+### 2. Build from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/auctionbot.git
-cd auctionbot
+git clone https://github.com/your-username/playerauction-bot.git
+cd playerauction-bot
 
-# Install PlayerAuctions API dependency (required!)
+# Install PlayerAuctions API dependency (REQUIRED!)
 # Download the PlayerAuctions plugin JAR and install it to local Maven repository:
 mvn install:install-file -Dfile=path/to/PlayerAuctions.jar -DgroupId=com.olziedev -DartifactId=playerauctions-api -Dversion=2.2.4 -Dpackaging=jar
 
-# Build using Maven
+# Build the plugin
 mvn clean package
-
-# Or use the build script
-./build.sh
 ```
 
-### 2. Server installation
+### 3. Server Installation
 
 1. Copy `target/AuctionBot-1.0.0.jar` to your server's `plugins/` folder
-2. Make sure you have the PlayerAuctions plugin installed
-3. Start the server to generate configuration files
-4. Stop the server and edit the configuration
+2. Start the server to generate configuration files
+3. Stop the server and configure the plugin
 
-### 3. Configuration
+## ⚙️ Configuration
 
 Edit `plugins/AuctionBot/config.yml`:
 
 ```yaml
+# AuctionBot Configuration File
 openai:
-  api-key: "sk-your-openai-api-key-here"  # Required!
-  model: "gpt-3.5-turbo"
+  # Your OpenAI API key (REQUIRED!)
+  # Get one from: https://platform.openai.com/api-keys
+  api-key: "sk-your-openai-api-key-here"
+  
+  # OpenAI model to use (recommended: gpt-4o-mini for better analysis)
+  model: "gpt-4o-mini"
+  
+  # Temperature for AI responses (0.0 = deterministic, 1.0 = creative)
   temperature: 0.7
+  
+  # Maximum tokens for AI responses
+  max-tokens: 1000
 
 bot:
-  player-uuid: "your-bot-player-uuid"     # Required!
-  virtual-mode: true                       # Enable virtual mode for bots without physical items
+  # UUID of the player account that will create auctions (REQUIRED!)
+  # Use /auctionbot uuid to get your UUID
+  player-uuid: "00000000-0000-0000-0000-000000000000"
+  
+  # Virtual mode: If true, bot doesn't check for actual items in inventory
+  # Perfect for dedicated bot accounts
+  virtual-mode: true
+  
+  # Bot's maximum budget for creating auctions
   budget: 10000.0
+  
+  # Minimum profit margin percentage
   min-profit-margin: 15.0
+  
+  # Maximum listings per item type (prevents market flooding)
+  max-listings-per-item: 2
+  
+  # Items the bot can auction (add/remove as needed)
   available-items:
     - "DIAMOND"
     - "EMERALD"
     - "IRON_INGOT"
-    # ... more items
+    - "GOLD_INGOT"
+    - "COAL"
+    - "WHEAT"
+    - "POTATO"
+    - "CARROT"
+    - "BEEF"
+    - "PORKCHOP"
+    - "CHICKEN"
+    - "OAK_LOG"
+    - "SPRUCE_LOG"
+    - "BIRCH_LOG"
+    - "COBBLESTONE"
+    - "DIRT"
+    - "SAND"
+    - "GRAVEL"
+    - "BREAD"
+    - "STONE"
+    - "DIAMOND_SWORD"
+    - "IRON_PICKAXE"
 
+# Monitoring Configuration
 monitoring:
+  # How often to check the auction house (in minutes)
   interval-minutes: 30
+  
+  # How long to keep auction data in memory (in hours)
+  data-retention-hours: 24
+  
+  # Enable debug logging for troubleshooting
   debug: false
 
+# Auction Settings
 auction:
+  # Maximum price the bot is allowed to set for any auction
   max-price: 5000.0
+  
+  # Maximum quantity the bot can auction at once
+  max-quantity: 64
+  
+  # Default auction duration (in hours)
+  # Note: Virtual auctions use server default duration
   duration-hours: 24
+  
+  # Whether to allow the bot to create bidding auctions
   allow-bidding: true
+
+# Advanced Settings
+advanced:
+  # Retry attempts for failed API calls
+  max-retries: 3
 ```
 
-### 4. Getting required data
+## 🔑 Setup Guide
 
-**OpenAI API Key:**
-1. Go to https://platform.openai.com/api-keys
+### 1. Get OpenAI API Key
+1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
 2. Sign in or create an account
 3. Create a new API key
-4. Copy it to the configuration
+4. Copy it to your configuration file
 
-**Bot Player UUID:**
-1. Log in to the server with the player you want to use as a bot
-2. Use the command `/auctionbot uuid` (or an online UUID generator)
-3. Copy the UUID to the configuration
-
-### 5. Virtual Mode Setup
-
-AuctionBot supports **Virtual Mode** for bot players that will never physically hold items:
-
-**What is Virtual Mode?**
-- The bot doesn't check for actual items in the player's inventory
-- Perfect for dedicated bot accounts that manage auctions without physical gameplay
-- Bot validates items against the `available-items` list in config instead of inventory
-
-**Configuration:**
-```yaml
-bot:
-  virtual-mode: true  # Enable virtual mode
-  available-items:    # List items the bot can "sell"
-    - "DIAMOND"
-    - "EMERALD"
-    - "IRON_INGOT"
-    # Add more items as needed
+### 2. Get Bot Player UUID
+**Option A: In-game command**
+```
+/auctionbot uuid
 ```
 
-**Setting up a Virtual Bot:**
-1. Create or use a player account dedicated for the bot
-2. Get the player's UUID (they don't need to play actively)
-3. Set `virtual-mode: true` in config
-4. List all items the bot should be able to auction in `available-items`
-5. The bot will create auctions for these items without needing physical inventory
+**Option B: Online tool**
+1. Visit [NameMC](https://namemc.com) or [UUID Generator](https://www.uuidgenerator.net/version4)
+2. Enter your player name
+3. Copy the UUID to configuration
 
-## Usage
+### 3. Virtual Mode Setup
 
-### Basic commands
+**What is Virtual Mode?**
+Virtual Mode allows the bot to operate without requiring physical items in inventory. Perfect for:
+- Dedicated bot accounts
+- Testing environments
+- Virtual economies
+- Servers where bots don't physically play
 
-- `/auctionbot status` - Show bot status
-- `/auctionbot stats` - Show market statistics
-- `/auctionbot reload` - Reload configuration
-- `/auctionbot uuid` - Show current player's UUID
+**How to Enable:**
+```yaml
+bot:
+  virtual-mode: true
+  available-items:
+    - "DIAMOND"
+    - "EMERALD"
+    # Add items the bot should be able to auction
+```
 
-### Permissions
+The bot will validate auctions against this list instead of checking inventory.
 
-- `auctionbot.admin` - Access to all commands
-- `auctionbot.reload` - Ability to reload configuration
+## 🎮 Commands
 
-## How it works
+| Command | Permission | Description |
+|---------|------------|-------------|
+| `/auctionbot status` | `auctionbot.admin` | Show bot status and current configuration |
+| `/auctionbot stats` | `auctionbot.admin` | Display market statistics and bot performance |
+| `/auctionbot reload` | `auctionbot.reload` | Reload configuration from file |
+| `/auctionbot uuid` | `auctionbot.admin` | Show current player's UUID |
 
-1. **Monitoring**: Bot regularly checks active auctions in the auction house
-2. **Analysis**: Collected data is sent to OpenAI for analysis
-3. **Decision making**: AI analyzes the market and recommends:
-   - Whether to create a new auction
-   - What item to sell
-   - How many items
-   - At what price
-   - Auction type (fixed price vs. bidding)
-4. **Execution**: Bot creates auctions based on AI recommendations
-5. **Repeat**: Process repeats according to configured interval
+## 🔍 How It Works
 
-## Security and limits
+### 1. Market Monitoring
+- Bot regularly scans all active auctions
+- Collects data: item types, quantities, prices, sellers, time remaining
+- Tracks bot's own auctions to respect limits
 
-### Security measures
-- Maximum auction price
-- Maximum item quantity
-- Minimum profit margin
-- Budget limits
+### 2. AI Analysis
+The collected market data is sent to OpenAI with:
+- Current market conditions for each item
+- Bot's current auction status
+- Available budget and constraints
+- Market saturation information
 
-### Recommendations
-- Start with a small budget and test
-- Monitor logs for errors
-- Regularly check created auctions
-- Protect your OpenAI API key
+### 3. Intelligent Decision Making
+AI analyzes the data and decides:
+- **Whether to create an auction** (based on market gaps and profitability)
+- **What item to sell** (from available-items list)
+- **Quantity** (considering market demand and stack sizes)
+- **Price** (competitive pricing with profit margin)
+- **Auction type** (fixed price vs bidding)
 
-## Troubleshooting
+### 4. Execution
+- Bot validates the AI decision against safety constraints
+- Creates the auction using PlayerAuctions API
+- Logs the transaction for monitoring
 
-### Common issues
+### 5. Safety Controls
+- Respects `max-listings-per-item` to prevent market flooding
+- Validates prices against `max-price` setting
+- Ensures sufficient budget before creating auctions
+- Only auctions items from `available-items` list
 
-**Bot doesn't create auctions:**
-- Check OpenAI API key
-- Verify bot player UUID is correct
-- Check that bot has available items
-- Check logs for errors
+## 🛡️ Security & Safeguards
 
-**Compilation errors:**
-- Make sure you have Java 17+
-- Check that Maven is properly installed
-- Verify internet connection for downloading dependencies
+### Built-in Safety Features
+- **Budget Control**: Bot respects maximum budget settings to prevent overspending
+- **Price Limits**: Maximum auction price (`max-price`) prevents unrealistic pricing
+- **Quantity Limits**: Maximum quantity per auction (`max-quantity`) for reasonable stack sizes
+- **Market Saturation Protection**: `max-listings-per-item` prevents flooding market with same items
+- **Whitelist Validation**: Only items in `available-items` list can be auctioned
+- **Profit Margin Enforcement**: Ensures minimum profit margin before creating auctions
+- **API Rate Limiting**: Built-in delays and retry mechanisms for OpenAI API calls
+
+### Best Practices
+- **Start Small**: Begin with a low budget (e.g., 1000 coins) for testing
+- **Monitor Regularly**: Check bot behavior and logs for the first few days
+- **Secure API Key**: Keep your OpenAI API key private and rotate it periodically
+- **Gradual Expansion**: Add items to `available-items` gradually as you gain confidence
+- **Regular Backups**: Backup your configuration and any important data
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**🚫 Bot doesn't create any auctions**
+```
+Possible causes:
+✓ Check OpenAI API key is valid and has credit
+✓ Verify bot player UUID is correct
+✓ Ensure available-items list is not empty
+✓ Check if max-listings-per-item limit is reached
+✓ Verify virtual-mode is enabled if bot has no inventory
+✓ Check server logs for error messages
+```
+
+**💰 "Insufficient budget" errors**
+```
+Solutions:
+✓ Increase bot.budget in configuration
+✓ Check current market prices aren't too high
+✓ Lower max-price if needed
+✓ Review profit margin settings
+```
+
+**🔑 OpenAI API errors**
+```
+Common fixes:
+✓ Verify API key is correct and active
+✓ Check OpenAI account has sufficient credits
+✓ Ensure API key has proper permissions
+✓ Try using gpt-4o-mini model (more cost-effective)
+```
+
+**🏗️ Compilation errors**
+```
+Requirements check:
+✓ Java 17 or higher installed
+✓ Maven properly configured
+✓ PlayerAuctions API dependency installed correctly
+✓ All imports and dependencies resolved
+```
+
+**⚠️ Plugin won't load**
+```
+Verification steps:
+✓ PlayerAuctions plugin is installed and working
+✓ Server is running Spigot/Paper 1.21+
+✓ AuctionBot JAR is in plugins folder
+✓ No conflicting plugins installed
+✓ Check server startup logs for errors
+```
+
+### Debug Mode
+
+Enable detailed logging by setting `monitoring.debug: true`:
+
+```yaml
+monitoring:
+  debug: true
+```
+
+This provides verbose information about:
+- Market analysis data sent to OpenAI
+- AI decision-making process
+- Auction creation attempts
+- Error details and stack traces
+
+### Log Analysis
+
+**Important log messages:**
+- `AI decided to create auction` - Bot is creating an auction
+- `Skipping auction - already have enough listings` - Market saturation protection active
+- `Not enough budget` - Budget limit reached
+- `Invalid AI decision received` - OpenAI returned malformed response
+
+## 📊 Performance & Monitoring
+
+### Key Metrics to Monitor
+- **Successful auctions created per day**
+- **Average profit margin achieved**
+- **Market saturation levels** (items at max listings)
+- **OpenAI API costs and usage**
+- **Bot's success rate** (created vs attempted auctions)
+
+### Optimization Tips
+- **Adjust monitoring interval**: Lower `interval-minutes` for more active markets
+- **Fine-tune available items**: Remove unprofitable items from the list
+- **Optimize profit margins**: Balance competitiveness with profitability
+- **Monitor competitor behavior**: Adjust strategy based on other players' auction patterns
+
+## 🔄 Updates & Maintenance
+
+### Regular Maintenance
+1. **Update OpenAI model**: Consider upgrading to newer models when available
+2. **Review item profitability**: Remove items that consistently don't sell
+3. **Adjust price strategies**: Update profit margins based on market changes
+4. **Monitor API costs**: Track OpenAI usage and optimize model settings
+5. **Check for plugin updates**: Keep both AuctionBot and PlayerAuctions updated
+
+## 🤝 Contributing
+
+### Development Setup
+1. Fork the repository
+2. Install PlayerAuctions API dependency
+3. Build with Maven: `mvn clean package`
+4. Test on a development server
+
+### Bug Reports
+Please include:
+- Server version (Spigot/Paper)
+- Plugin versions (AuctionBot, PlayerAuctions)
+- Configuration file (remove API keys)
+- Error logs and stack traces
+- Steps to reproduce the issue
+
+## ⚠️ Disclaimer
+
+- This bot modifies your server's auction house automatically
+- Monitor its behavior carefully, especially in the beginning
+- The AI makes decisions based on market data but cannot predict all market conditions
+- Always test thoroughly on a development server first
+- Use at your own risk - the authors are not responsible for any economic impact
+
+---
 
 **OpenAI API errors:**
 - Check credit on OpenAI account
@@ -182,33 +378,6 @@ Plugin logs to:
 - Spigot/Paper server logs
 - `plugins/AuctionBot/` folder (if debug mode is enabled)
 
-## Development
-
-### Project structure
-
-```
-playerauction-bot/
-├── src/main/java/me/skerik/auctionbot/
-│   ├── AuctionBot.java                    # Main plugin class
-│   ├── managers/
-│   │   ├── AuctionManager.java           # Auction management
-│   │   └── OpenAIManager.java            # OpenAI integration
-│   ├── tasks/
-│   │   └── AuctionMonitorTask.java       # Monitoring task
-│   ├── config/
-│   │   └── ConfigManager.java            # Configuration management
-│   ├── models/
-│   │   ├── AuctionData.java              # Auction data model
-│   │   └── AuctionDecision.java          # AI decision model
-│   └── utils/
-│       └── ItemUtils.java                # Utility functions
-├── src/main/resources/
-│   ├── plugin.yml                        # Plugin manifest
-│   └── config.yml                        # Default configuration
-├── pom.xml                               # Maven configuration
-└── build.sh                             # Build script
-```
-
 ### Contributing
 
 1. Fork the repository
@@ -216,14 +385,9 @@ playerauction-bot/
 3. Make changes and test
 4. Create a pull request
 
-## License
-
-This project is licensed under the MIT License.
-
 ## Support
 
 - GitHub Issues: [Report a problem](https://github.com/your-username/auctionbot/issues)
-- Discord: [Discord Server](https://discord.gg/yourserver)
 
 ## Changelog
 
