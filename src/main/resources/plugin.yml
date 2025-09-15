@@ -1,0 +1,28 @@
+name: AuctionBot
+main: me.skerik.auctionbot.AuctionBot
+version: ${project.version}
+api-version: 1.21
+description: ${project.description}
+author: Filasik
+website: https://github.com/skerik/auctionbot
+
+depend:
+  - PlayerAuctions
+
+softdepend:
+  - Vault
+
+permissions:
+  auctionbot.admin:
+    description: Allows access to AuctionBot admin commands
+    default: op
+  auctionbot.reload:
+    description: Allows reloading the plugin configuration
+    default: op
+
+commands:
+  auctionbot:
+    description: Main AuctionBot command
+    usage: /<command> [reload|stats|status]
+    permission: auctionbot.admin
+    aliases: [ab, bot]

@@ -1,0 +1,10 @@
+me/skerik/auctionbot/config/ConfigManager.class
+me/skerik/auctionbot/AuctionBot.class
+me/skerik/auctionbot/managers/OpenAIManager.class
+me/skerik/auctionbot/tasks/AuctionMonitorTask.class
+me/skerik/auctionbot/utils/ItemUtils$1.class
+me/skerik/auctionbot/models/AuctionDecision.class
+me/skerik/auctionbot/models/AuctionData.class
+me/skerik/auctionbot/models/AuctionData$Builder.class
+me/skerik/auctionbot/managers/AuctionManager.class
+me/skerik/auctionbot/utils/ItemUtils.class

@@ -1,0 +1,252 @@
+package me.skerik.auctionbot.managers;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import me.skerik.auctionbot.config.ConfigManager;
+import me.skerik.auctionbot.models.AuctionData;
+import me.skerik.auctionbot.models.AuctionDecision;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+/**
+ * Manages OpenAI API integration for auction decision making
+ */
+public class OpenAIManager {
+    
+    private final ConfigManager configManager;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final Logger logger;
+    
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+    
+    public OpenAIManager(ConfigManager configManager) {
+        this.configManager = configManager;
+        this.httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(30))
+            .build();
+        this.objectMapper = new ObjectMapper();
+        this.logger = configManager.getPlugin().getLogger();
+    }
+    
+    /**
+     * Analyzes market data and returns AI decision
+     */
+    public CompletableFuture<AuctionDecision> analyzeMarket(List<AuctionData> marketData) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String prompt = buildMarketAnalysisPrompt(marketData);
+                String response = callOpenAI(prompt);
+                return parseAIResponse(response);
+            } catch (Exception e) {
+                logger.severe("Error analyzing market with OpenAI: " + e.getMessage());
+                e.printStackTrace();
+                return AuctionDecision.noAction("Error communicating with OpenAI: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Builds a comprehensive prompt for market analysis
+     */
+    private String buildMarketAnalysisPrompt(List<AuctionData> marketData) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt.append("You are an intelligent auction bot for a Minecraft server. ");
+        prompt.append("Analyze the current auction house market data and decide whether to create new auctions. ");
+        prompt.append("Your goal is to supplement the market with items that are in demand but have limited supply, ");
+        prompt.append("while pricing competitively to make profit and avoiding market flooding.\\n\\n");
+        
+        prompt.append("IMPORTANT RULES:\\n");
+        prompt.append("- Avoid creating too many of the same item type in a short period\\n");
+        prompt.append("- Diversify across different item types when possible\\n");
+        prompt.append("- Consider market saturation - if there are already many listings of an item, consider other items\\n");
+        prompt.append("- Price competitively but ensure minimum 15% profit margin\\n");
+        prompt.append("- Quantities should typically be 16-32 items for common materials\\n\\n");
+        
+        prompt.append("Current Market Data (").append(marketData.size()).append(" active auctions):\\n");
+        
+        // Group auctions by item type for better analysis
+        Map<String, List<AuctionData>> itemGroups = marketData.stream()
+            .collect(Collectors.groupingBy(AuctionData::getItemName));
+        
+        for (Map.Entry<String, List<AuctionData>> entry : itemGroups.entrySet()) {
+            String itemType = entry.getKey();
+            List<AuctionData> auctions = entry.getValue();
+            
+            prompt.append(String.format("\\n%s (%d listings):\\n", itemType, auctions.size()));
+            
+            for (AuctionData data : auctions) {
+                prompt.append(String.format(
+                    "  - %s x%d: %.2f coins (%.2f per item) by %s [%s]\\n",
+                    data.getDisplayName(),
+                    data.getAmount(),
+                    data.getPrice(),
+                    data.getPricePerItem(),
+                    data.getSeller(),
+                    data.isBidding() ? "Bidding" : "Fixed"
+                ));
+            }
+        }
+            ));
+        }
+        
+        prompt.append("\\nBot Configuration:\\n");
+        prompt.append("- Budget: ").append(configManager.getBotBudget()).append(" coins\\n");
+        prompt.append("- Available items: ").append(String.join(", ", configManager.getAvailableItems())).append("\\n");
+        prompt.append("- Min profit margin: ").append(configManager.getMinProfitMargin()).append("%\\n");
+        
+        prompt.append("\\nDecision Criteria:\\n");
+        prompt.append("1. Look for items with high demand (expensive, limited quantity)\\n");
+        prompt.append("2. Price competitively but ensure minimum profit margin\\n");
+        prompt.append("3. Avoid oversaturating the market\\n");
+        prompt.append("4. Consider seasonal/event demand\\n");
+        prompt.append("5. Don't compete directly with very low prices\\n");
+        
+        prompt.append("\\nRespond with a JSON object containing:\\n");
+        prompt.append("- 'action': 'create' or 'wait'\\n");
+        prompt.append("- 'itemType': Minecraft material name (e.g., 'DIAMOND', 'IRON_INGOT')\\n");
+        prompt.append("- 'quantity': Number of items (1-64)\\n");
+        prompt.append("- 'price': Total price for the auction\\n");
+        prompt.append("- 'bidding': true/false for auction type\\n");
+        prompt.append("- 'reasoning': Explanation of your decision\\n");
+        prompt.append("\\nExample: {\\\"action\\\": \\\"create\\\", \\\"itemType\\\": \\\"DIAMOND\\\", \\\"quantity\\\": 8, \\\"price\\\": 1200.0, \\\"bidding\\\": false, \\\"reasoning\\\": \\\"Diamonds are in high demand with limited supply\\\"}");
+        
+        return prompt.toString();
+    }
+    
+    /**
+     * Calls OpenAI API with the given prompt
+     */
+    private String callOpenAI(String prompt) throws IOException, InterruptedException {
+        // Properly escape the prompt content for JSON
+        String escapedPrompt = prompt
+            .replace("\\", "\\\\")  // Escape backslashes first
+            .replace("\"", "\\\"")  // Escape quotes
+            .replace("\n", "\\n")   // Escape newlines
+            .replace("\r", "\\r")   // Escape carriage returns
+            .replace("\t", "\\t");  // Escape tabs
+        
+        // Create JSON request body manually with proper formatting
+        String requestBody = String.format(
+            "{" +
+                "\"model\":\"%s\"," +
+                "\"messages\":[" +
+                    "{" +
+                        "\"role\":\"user\"," +
+                        "\"content\":\"%s\"" +
+                    "}" +
+                "]," +
+                "\"max_tokens\":%d," +
+                "\"temperature\":%.2f" +
+            "}",
+            configManager.getOpenAIModel(),
+            escapedPrompt,
+            configManager.getMaxTokens(),
+            configManager.getTemperature()
+        );
+        
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+            .uri(URI.create(OPENAI_API_URL))
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + configManager.getOpenAIApiKey())
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+            .build();
+        
+        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+        
+        if (response.statusCode() != 200) {
+            throw new IOException("OpenAI API returned status: " + response.statusCode() + " - " + response.body());
+        }
+        
+        return response.body();
+    }
+    
+    /**
+     * Parses OpenAI response and extracts decision
+     */
+    private AuctionDecision parseAIResponse(String responseBody) {
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode choices = root.get("choices");
+            
+            if (choices != null && choices.isArray() && choices.size() > 0) {
+                JsonNode content = choices.get(0).get("message").get("content");
+                String contentText = content.asText();
+                
+                // Extract JSON from the content
+                String jsonText = extractJSON(contentText);
+                JsonNode decision = objectMapper.readTree(jsonText);
+                
+                String action = decision.get("action").asText();
+                
+                if ("wait".equalsIgnoreCase(action)) {
+                    String reasoning = decision.has("reasoning") ? decision.get("reasoning").asText() : "AI decided to wait";
+                    return AuctionDecision.noAction(reasoning);
+                } else if ("create".equalsIgnoreCase(action)) {
+                    String itemType = decision.get("itemType").asText();
+                    int quantity = decision.get("quantity").asInt();
+                    double price = decision.get("price").asDouble();
+                    boolean bidding = decision.get("bidding").asBoolean();
+                    String reasoning = decision.has("reasoning") ? decision.get("reasoning").asText() : "AI decided to create auction";
+                    
+                    return AuctionDecision.createAuction(itemType, quantity, price, bidding, reasoning);
+                } else {
+                    return AuctionDecision.noAction("Unknown action: " + action);
+                }
+            }
+            
+            return AuctionDecision.noAction("No valid response from OpenAI");
+            
+        } catch (Exception e) {
+            logger.severe("Error parsing OpenAI response: " + e.getMessage());
+            return AuctionDecision.noAction("Failed to parse AI response");
+        }
+    }
+    
+    /**
+     * Extracts JSON from potentially markdown-formatted response
+     */
+    private String extractJSON(String content) {
+        // Remove markdown code blocks if present
+        content = content.trim();
+        if (content.startsWith("```json")) {
+            content = content.substring(7);
+        }
+        if (content.startsWith("```")) {
+            content = content.substring(3);
+        }
+        if (content.endsWith("```")) {
+            content = content.substring(0, content.length() - 3);
+        }
+        
+        return content.trim();
+    }
+    
+    /**
+     * Formats time remaining in human readable format
+     */
+    private String formatTimeRemaining(long milliseconds) {
+        if (milliseconds <= 0) {
+            return "expired";
+        }
+        
+        long minutes = milliseconds / (1000 * 60);
+        if (minutes < 60) {
+            return minutes + "m";
+        }
+        
+        long hours = minutes / 60;
+        return hours + "h " + (minutes % 60) + "m";
+    }
+}

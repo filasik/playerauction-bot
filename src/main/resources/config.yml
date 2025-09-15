@@ -1,0 +1,106 @@
+# AuctionBot Configuration File
+# This plugin integrates with PlayerAuctions and uses OpenAI to make intelligent auction decisions
+
+# OpenAI Configuration
+openai:
+  # Your OpenAI API key (required)
+  # Get one from: https://platform.openai.com/api-keys
+  api-key: "YOUR_OPENAI_API_KEY_HERE"
+  
+  # OpenAI model to use
+  model: "gpt-4o-mini"
+  
+  # Temperature for AI responses (0.0 = more deterministic, 1.0 = more creative)
+  temperature: 0.7
+  
+  # Maximum tokens for AI responses
+  max-tokens: 1000
+
+# Bot Configuration
+bot:
+  # UUID of the player account that will create auctions
+  # Use /auctionbot uuid to get your UUID
+  player-uuid: "00000000-0000-0000-0000-000000000000"
+  
+  # Virtual mode: If true, bot doesn't check for actual items in inventory
+  # This is useful for virtual bots that manage auctions without physical items
+  virtual-mode: true
+  
+  # Maximum budget the bot can work with (in coins)
+  budget: 10000.0
+  
+  # Minimum profit margin percentage the bot should aim for
+  min-profit-margin: 15.0
+  
+  # Maximum number of active auctions per item type (to prevent market flooding)
+  max-listings-per-item: 2
+  
+  # List of items the bot has access to
+  # These should be Minecraft material names (e.g., DIAMOND, IRON_INGOT)
+  available-items:
+    - "DIAMOND"
+    - "EMERALD" 
+    - "IRON_INGOT"
+    - "GOLD_INGOT"
+    - "COAL"
+    - "WHEAT"
+    - "POTATO"
+    - "CARROT"
+    - "BEEF"
+    - "PORKCHOP"
+    - "CHICKEN"
+    - "OAK_LOG"
+    - "SPRUCE_LOG"
+    - "BIRCH_LOG"
+    - "COBBLESTONE"
+    - "DIRT"
+    - "SAND"
+    - "GRAVEL"
+    - "BREAD"
+    - "STONE"
+    - "DIAMOND_SWORD"
+    - "IRON_PICKAXE"
+    - "CHICKEN"
+    - "OAK_LOG"
+    - "SPRUCE_LOG"
+    - "BIRCH_LOG"
+    - "COBBLESTONE"
+    - "DIRT"
+    - "SAND"
+    - "GRAVEL"
+
+# Monitoring Configuration
+monitoring:
+  # How often to check the auction house (in minutes)
+  interval-minutes: 30
+  
+  # How long to keep auction data in memory (in hours)
+  data-retention-hours: 24
+  
+  # Enable debug logging
+  debug: false
+
+# Auction Settings
+auction:
+  # Maximum price the bot is allowed to set for any auction
+  max-price: 5000.0
+  
+  # Maximum quantity the bot can auction at once
+  max-quantity: 64
+  
+  # Default auction duration (in hours)
+  duration-hours: 24
+  
+  # Whether to allow the bot to create bidding auctions
+  allow-bidding: false
+
+# Advanced Settings
+advanced:
+  # Retry attempts for failed API calls
+  max-retries: 3
+  
+  # Delay between retries (in seconds)
+  retry-delay: 5
+  
+  # Enable rate limiting for API calls
+  rate-limiting: true

@@ -1,0 +1,8 @@
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/managers/OpenAIManager.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/config/ConfigManager.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/AuctionBot.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/tasks/AuctionMonitorTask.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/managers/AuctionManager.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/models/AuctionData.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/models/AuctionDecision.java
+/Users/filipskerik/GitHub/playerauction-bot/src/main/java/me/skerik/auctionbot/utils/ItemUtils.java
